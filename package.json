@@ -1,0 +1,8 @@
+{
+  "name": "build-tools",
+  "version": "0.0.1",
+  "description": "A small set of build tools",
+  "main": "index.js",
+  "author": "Christian Seel <cs@chsmedien.de> (http://chsmedien.de/)",
+  "private": true
+}
