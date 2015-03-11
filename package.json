@@ -2,6 +2,10 @@
   "name": "npm-build-tools",
   "version": "0.1.0",
   "description": "A small set of build tools for npm",
+  "repository" : {
+    "type" : "git",
+    "url" : "http://github.com/christianseel/npm-build-tools.git"
+  },
   "main": "index.js",
   "author": "Christian Seel <cs@chsmedien.de> (http://chsmedien.de/)",
   "dependencies": {
