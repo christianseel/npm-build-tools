@@ -2,6 +2,10 @@
 
 These scripts for sass and js files process all js/sass files together if one of them has been updated. This makes importing easy.
 
+## Installation
+
+You can easily install the tools with `npm install christianseel/npm-build-tools`.
+
 ## Example usage
 
 Add this to you `package.json`:
