@@ -29,7 +29,7 @@ module.exports = {
 		    //sourceMapContents: true,
 		    //sourceMapEmbed: false,
 		    //omitSourceMapUrl: false,
-		    outputStyle: 'nested',//params.outputStyle,
+		    outputStyle: params.outputStyle,
 		    
 		    success: function(result) {
 	            
