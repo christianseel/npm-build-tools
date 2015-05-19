@@ -1,6 +1,6 @@
 {
   "name": "npm-build-tools",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A small set of build tools for npm",
   "repository" : {
     "type" : "git",
@@ -10,7 +10,7 @@
   "author": "Christian Seel <cs@chsmedien.de> (http://chsmedien.de/)",
   "dependencies": {
     "autoprefixer": "4.0.x",
-    "node-sass": "2.x.x",
+    "node-sass": "3.x.x",
     "uglify-js": "2.4.x",
     "optimist": "0.x.x",
     "osx-notifier": "0.x.x",

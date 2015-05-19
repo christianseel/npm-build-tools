@@ -2,7 +2,7 @@ var fs = require("fs"),
     path = require("path"),
 	nodesass = require('node-sass'),
 	autoprefixer = require('autoprefixer',{
-        browsers: ['> 3%', 'last 2 versions', 'Firefox ESR', 'Opera 12.1', 'Explorer 9'],
+        browsers: ['> 2%', 'last 2 versions', 'Firefox ESR', 'Opera 12.1', 'Explorer 9'],
         cascade: false
     }),
 	color = require('cli-color'),
@@ -31,39 +31,10 @@ module.exports = {
 		    //omitSourceMapUrl: false,
 		    outputStyle: params.outputStyle,
 		    
-		    success: function(result) {
-	            
-	            // run autoprefixer
-	            result.css = autoprefixer.process(result.css, {
-    	            in: path.resolve(file),
-    	            to: path.resolve(outFile),
-    	            map: {
-        	            inline: false,
-        	            prev: result.map
-    	            }
-	            });
-	                   
-	            fs.writeFile(outFile+'.map', result.map, function(err) {
-				    if(err) {
-				        console.log(color.red('Error saving ' + outFile+'.map' + ': ' + err));
-				    } else {
-				        // file saved
-				        console.log(color.green('Saved sourcemap for '+file + ' to ' +outFile+'.map'));
-				    }
-				});
-				
-	            fs.writeFile(outFile, result.css, function(err) {
-				    if(err) {
-				        console.log(color.red('Error saving ' + outFile + ': ' + err));
-				    } else {
-				        // file saved
-				        console.log(color.green('Rendered CSS for '+file + ' to ' +outFile));
-				    }
-				});
-			},
-			
-		    error: function(error) {
-		        console.log(color.red('ERROR found in ') + color.red.bold(path.basename(file)) + color.red(': '+error.message));
+	    }, function(error, result){
+    	    
+    	    if (error) {
+        	    console.log(color.red('ERROR found in ') + color.red.bold(error.file) + color.red(' on line '+error.line) + color.red(': '+error.message));
 		        //console.log(error.code);
 		        notify && notify({
                   type: 'fail',
@@ -72,7 +43,38 @@ module.exports = {
                   message: error.message,
                   group: 'build-tools',
                 });
-		    }
+                
+    	    } else {
+        	    // success
+        	    
+        	    // run autoprefixer
+	            result.css = autoprefixer.process(result.css.toString(), {
+    	            in: path.resolve(file),
+    	            to: path.resolve(outFile),
+    	            map: {
+        	            inline: false,
+        	            prev: result.map.toString()
+    	            }
+	            });
+	                   
+	            fs.writeFile(outFile+'.map', result.map.toString(), function(err) {
+				    if(err) {
+				        console.log(color.red('Error saving ' + outFile+'.map' + ': ' + err));
+				    } else {
+				        // file saved
+				        console.log(color.green('Saved sourcemap for '+file + ' to ' +outFile+'.map'));
+				    }
+				});
+				
+	            fs.writeFile(outFile, result.css.toString(), function(err) {
+				    if(err) {
+				        console.log(color.red('Error saving ' + outFile + ': ' + err));
+				    } else {
+				        // file saved
+				        console.log(color.green('Rendered CSS for '+file + ' to ' +outFile));
+				    }
+				});
+    	    }
 	    });
 	    
 	    
