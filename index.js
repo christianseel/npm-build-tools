@@ -5,6 +5,7 @@ var fs = require("fs"),
     		.default('ext','')
     		.default('outputStyle','compressed')
     		.default('outputDir','assets/tpl/dist/')
+    		.default('browsers', "['> 2%', 'last 2 versions', 'ie >= 10', 'and_chr >= 2.3']")
     		.argv,
 	antenne = require('./tools.js');
 
@@ -36,7 +37,8 @@ files = files.filter(function (file) {
 		antenne.sass({
 			file: file,
 		    outputDir: argv.outputDir,
-		    outputStyle: argv.outputStyle
+		    outputStyle: argv.outputStyle,
+		    browsers: argv.browsers
 		});
 	}
 
