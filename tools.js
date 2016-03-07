@@ -1,10 +1,7 @@
+if (typeof params)
 var fs = require("fs"),
     path = require("path"),
 	nodesass = require('node-sass'),
-	autoprefixer = require('autoprefixer',{
-        browsers: ['> 2%', 'last 2 versions', 'Firefox ESR', 'Opera 12.1', 'Explorer 9'],
-        cascade: false
-    }),
 	color = require('cli-color'),
 	UglifyJS = require("uglify-js");
 
@@ -46,6 +43,12 @@ module.exports = {
                 
     	    } else {
         	    // success
+        	    
+                var apbrowsers = JSON.parse(params.browsers.replace(new RegExp("'", 'g'),'"'));
+        	    var autoprefixer = require('autoprefixer',{
+                    browsers: apbrowsers,
+                    cascade: false
+                });
         	    
         	    // run autoprefixer
 	            result.css = autoprefixer.process(result.css.toString(), {
