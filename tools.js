@@ -6,7 +6,8 @@ var fs = require("fs"),
         cascade: false
     }),
 	color = require('cli-color'),
-	UglifyJS = require("uglify-js");
+	UglifyJS = require("uglify-js"),
+	babel = require("babel-core");
 
 var notify = require('osx-notifier');
 
@@ -86,6 +87,9 @@ module.exports = {
 		
 		var file = params.file;
 		var outFile = params.outputDir + path.basename(file, path.extname(file)) + '.js';
+		
+		console.log('Processing '+outFile);
+		
 		var importedFiles = module.exports.getImportFiles(file);
 		importedFiles.push(file);
 		
@@ -101,13 +105,56 @@ module.exports = {
             return;
 		}
 		
-		//console.log(importedFiles);
-		try {	
-    		var result = UglifyJS.minify(importedFiles, {
-    			screw_ie8: true,
-    			outSourceMap: path.basename(file, path.extname(file))+'.js.map',
-    			sourceRoot: '/'
-    		});
+		//console.log(importedFiles);     
+        
+		try {
+    		// load babelrc config
+    		try {
+        		var babelconfig = JSON.parse(require('fs').readFileSync(path.resolve('.babelrc')));
+        		if (typeof babelconfig !== 'object') babelconfig = {};
+            } catch(err) {
+                babelconfig = {};
+            }
+    		
+    		// this is following "the hard way" implementation of UglifyJS: https://github.com/mishoo/UglifyJS2#the-hard-way
+            var toplevel = null;
+            importedFiles.forEach(function(file){
+                console.log(color.yellow(' - Processing contents of '+ file));
+                // load file content
+                var code = fs.readFileSync(file, "utf8");
+                // run babeljs
+                var babelresult = babel.transform(code, babelconfig);
+                // run uglifyjs
+                toplevel = UglifyJS.parse(babelresult.code, {
+                    filename: file,
+                    toplevel: toplevel
+                });
+            });
+            
+            // Scope information
+            toplevel.figure_out_scope({screw_ie8: true})
+            
+            // Compression
+            var compressor = UglifyJS.Compressor({screw_ie8: true});
+            var compressed_ast = toplevel.transform(compressor);
+
+            // Mangling
+            compressed_ast.figure_out_scope({screw_ie8: true});
+            compressed_ast.compute_char_frequency();
+            compressed_ast.mangle_names();
+            
+            // Generating output (code and source map)
+            var source_map = UglifyJS.SourceMap({
+                file: path.basename(file, path.extname(file))+'.js'
+            });
+            var stream = UglifyJS.OutputStream({
+                source_map: source_map,
+                screw_ie8: true
+            });
+            compressed_ast.print(stream);
+            var code = stream.toString();
+            var map = source_map.toString();
+
         } catch(err) {
             console.log(color.red('UglifyJS Error: '+err.message+"\n"+'Line: '+err.line+' Col: '+err.col+' Pos: '+err.pos));
             notify && notify({
@@ -119,21 +166,23 @@ module.exports = {
             });
         }
         
-        if (typeof result != 'undefined') {
-    		fs.writeFile(outFile, result.code, function(err) {
+        if (typeof code != 'undefined') {
+    		fs.writeFile(outFile, code, function(err) {
     		    if(err) {
     		        console.log(color.red('Error saving ' + outFile + ': ' + err));
     		    } else {
     		        // file saved
-    		        console.log(color.green('Rendered JS for '+file + ' to ' +outFile));
+    		        console.log(color.green('Saved bundled JS for '+file + ' at ' +outFile));
     		    }
     		});
-    		fs.writeFile(outFile+'.map', result.map, function(err) {
+        }
+        if (typeof map != 'undefined') {
+    		fs.writeFile(outFile+'.map', map, function(err) {
     		    if(err) {
     		        console.log(color.red('Error saving ' + outFile+'.map' + ': ' + err));
     		    } else {
     		        // file saved
-    		        console.log(color.green('Saved source map for '+file + ' to ' +outFile+'.map'));
+    		        console.log(color.green('Saved source map for '+file + ' at ' +outFile+'.map'));
     		    }
     		});
         }
@@ -179,7 +228,6 @@ module.exports = {
 					// Regex to match import statements
 					/^([ \t]*)(\/\/*)( \t*)import [\"\'](.+)?[\"\'](;?)(?![^\*]+\*\/)/gm,
 					function(match, tabs, prefix, space, fileName){
-    					console.log(color.yellow('Importing file '+path.resolve(filePath, fileName)));
 						// Replace Import
 						fileMap.concat( module.exports.getImportFiles(filePath+'/'+fileName, fileMap, true) );
 					}
