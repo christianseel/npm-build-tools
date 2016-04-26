@@ -155,7 +155,7 @@ module.exports = {
                 screw_ie8: true
             });
             compressed_ast.print(stream);
-            var code = stream.toString();
+            var code = stream.toString() + "\n//# sourceMappingURL="+path.basename(file, path.extname(file))+".js.map";
             var map = source_map.toString();
 
         } catch(err) {
@@ -169,13 +169,15 @@ module.exports = {
             });
         }
         
+        console.log(color.green('Done!'));
+        
         if (typeof code != 'undefined') {
     		fs.writeFile(outFile, code, function(err) {
     		    if(err) {
     		        console.log(color.red('Error saving ' + outFile + ': ' + err));
     		    } else {
     		        // file saved
-    		        console.log(color.green('Saved bundled JS for '+file + ' at ' +outFile));
+    		        //console.log(color.green('Saved bundled JS for '+file + ' at ' +outFile));
     		    }
     		});
         }
@@ -185,7 +187,7 @@ module.exports = {
     		        console.log(color.red('Error saving ' + outFile+'.map' + ': ' + err));
     		    } else {
     		        // file saved
-    		        console.log(color.green('Saved source map for '+file + ' at ' +outFile+'.map'));
+    		        //console.log(color.green('Saved source map for '+file + ' at ' +outFile+'.map'));
     		    }
     		});
         }
