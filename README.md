@@ -21,6 +21,6 @@ Add this to you `package.json`:
     "build:js": "node node_modules/npm-build-tools/index.js --path \"assets/tpl/sources/js/\" --ext \"js\" --outputDir \"assets/tpl/dist/\"",
     "prebuild:js": "npm run lint",
     
-    "build:css": "node node_modules/npm-build-tools/index.js --path \"assets/tpl/sources/scss/\" --ext \"scss\" --outputDir \"assets/tpl/dist/\" --outputStyle \"compressed\""
+    "build:css": "node node_modules/npm-build-tools/index.js --path \"assets/tpl/sources/scss/\" --ext \"scss\" --outputDir \"assets/tpl/dist/\" --outputStyle \"compressed\" --browsers \"['> 2%', 'last 2 versions', 'ie >= 10', 'and_chr >= 2.3']\""
   }
 ```
