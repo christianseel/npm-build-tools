@@ -16,6 +16,7 @@
     "osx-notifier": "0.x.x",
     "cli-color": "0.x.x",
     "babel-core": "6.x.x",
-    "generate-source-map": "0.0.5"
+    "generate-source-map": "0.0.5",
+    "source-map": "^0.5.5"
   }
 }
