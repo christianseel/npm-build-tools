@@ -261,7 +261,7 @@ module.exports = {
 		return fileMap;
 	},
 
-
+	// inspired by https://github.com/edc/mapcat/blob/master/lib/index.js
 	catjs: function(inputJSFiles, inputMapFiles, outJSFile, outMapFile, maproot) {
 		var SourceMapConsumer, SourceMapGenerator, path, readFileSync, writeFileSync, _ref, _ref1;
 
