@@ -5,10 +5,7 @@ if (typeof params)
 		color = require('cli-color'),
 		UglifyJS = require("uglify-js"),
 		babel = require("babel-core"),
-		generatesourcemap = require('generate-source-map');
-
-var notify = require('osx-notifier');
-
+		Concat = require('concat-with-sourcemaps');
 
 module.exports = {
 	// build css
@@ -34,14 +31,7 @@ module.exports = {
 
 			if (error) {
 				console.log(color.red('ERROR found in ') + color.red.bold(error.file) + color.red(' on line '+error.line) + color.red(': '+error.message));
-				//console.log(error.code);
-				notify && notify({
-					type: 'fail',
-					title: 'Error found (SASS)',
-					subtitle: 'in '+path.basename(file),
-					message: error.message,
-					group: 'build-tools',
-				});
+
 
 			} else {
 				// success
@@ -92,80 +82,47 @@ module.exports = {
 		var file = params.file;
 		var outFile = params.outputDir + path.basename(file, path.extname(file)) + '.js';
 
-		console.log('Processing '+outFile);
+		console.log('Processing ' + file + ' to ' + outFile);
 
 		var importedFiles = module.exports.getImportFiles(file);
 		importedFiles.push(file);
 
-		if (importedFiles.length == 0) {
-			console.log(color.red('No files found'));
-			notify && notify({
-				type: 'fail',
-				title: 'Error (JS)',
-				subtitle: 'No files found',
-				message: 'No files found',
-				group: 'build-tools',
-			});
-			return;
-		}
-
-		//console.log(importedFiles);
-
 		try {
-			// load babelrc config
-			try {
-				var babelconfig = JSON.parse(fs.readFileSync(path.resolve('.babelrc')));
-				if (typeof babelconfig !== 'object') babelconfig = {};
-			} catch(err) {
-				babelconfig = {};
-			}
 
-			var codes = [];
-			var maps = [];
+			var concat = new Concat(true, outFile, '\n\n\/\/ NEXT FILE\n\n');
+			concat.add(null, "/* Generated on "+ new Date().toLocaleString() +" */");
 
 			importedFiles.forEach(function(file){
 				file = path.normalize(file);
 				console.log(color.yellow(' - Including contents of '+ file));
 
-				// run babeljs
 				var babeloptions = {
-					filename: path.basename(file),
-					filenameRelative: '../'+path.normalize(file),
+					filename: outFile,
+					filenameRelative: '../'+file,
 					sourceMaps: true,
 					sourceRoot: '',
-					sourceMapTarget: '../'+path.normalize(file),
-					sourceFileName: '../'+path.normalize(file),
-					compact: false
+					sourceMapTarget: '../'+file,
+					sourceFileName: '../'+file
 				};
 				//console.log(babeloptions);
+				babelresult = babel.transformFileSync(file, babeloptions);
 
-				if (file.indexOf('foundation-sites') != -1) {
-					result = babel.transformFileSync(file, babeloptions);
+				// remove source content
+				delete babelresult.map.sourcesContent;
+				babelresult.map.file = outFile;
+				babelresult.map = JSON.stringify(babelresult.map);
 
-					if (result.code.indexOf('"use strict";') === 0 || result.code.indexOf("'use strict';") === 0) {
-						result.code = result.code.substring(13);
-					}
-				} else {
-					// load code
-					result = {
-						code: fs.readFileSync(file, "utf8")
-					}
-					// generate source map
-					var generatedmap = generatesourcemap({
-						source: result.code,
-						sourceFile: '../'+file
-					});
-					result.map = generatedmap.toString();
-				}
+				//console.log(babelresult.map);
 
-				codes.push(result.code);
-				maps.push(result.map);
+
+				concat.add(path.basename(file), babelresult.code, babelresult.map);
 			});
 
+			var bundled = {
+				code: concat.content.toString(),
+				map: concat.sourceMap
+			};
 
-			var bundled = module.exports.catjs(codes, maps, outFile, outFile+'.map','');
-
-			//var result = bundled;
 
 			var result = UglifyJS.minify(bundled.code, {
 				fromString: true,
@@ -177,18 +134,15 @@ module.exports = {
 
 		} catch(err) {
 			console.log(color.red('JS Processing Error: '+err.message+"\n"+'Line: '+err.line+' Col: '+err.col+' Pos: '+err.pos));
-			notify && notify({
-				type: 'fail',
-				title: 'Error found (JS)',
-				subtitle: 'Line: '+err.line+' Col: '+err.col+' Pos: '+err.pos,
-				message: err.message,
-				group: 'build-tools',
-			});
 		}
 
 		console.log(color.green('Done!'));
 
 		if (typeof result.code != 'undefined') {
+			var sourcemapstring = "//# sourceMappingURL="+ path.basename(outFile) + ".map";
+			if (result.code.indexOf(sourcemapstring) < 0) {
+				result.code = result.code + "\n"+sourcemapstring;
+			}
 			fs.writeFile(outFile, result.code, function(err) {
 				if(err) {
 					console.log(color.red('Error saving ' + outFile + ': ' + err));
@@ -233,12 +187,6 @@ module.exports = {
 		fileMap.indexOf(mapPath) > -1
 		){
 			console.log(color.red('Error: import file not found ('+fileName+')'), filePath, path.resolve(fileName));
-			notify && notify({
-				type: 'fail',
-				title: 'Import Error',
-				message: 'file not found ('+fileName+')',
-				group: 'build-tools',
-			});
 			return "";
 		} else {
 			//   console.log('Importing files for '+fileName);
