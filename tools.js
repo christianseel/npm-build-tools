@@ -89,12 +89,12 @@ module.exports = {
 
 		try {
 
-			var concat = new Concat(true, outFile, '\n\n\/\/ NEXT FILE\n\n');
-			concat.add(null, "/* Generated on "+ new Date().toLocaleString() +" */");
+			var concat = new Concat(true, outFile, '\n');
 
 			importedFiles.forEach(function(file){
 				file = path.normalize(file);
 				console.log(color.yellow(' - Including contents of '+ file));
+				concat.add(null, "\n// @preserve Including contents of "+file);
 
 				var babeloptions = {
 					filename: outFile,
@@ -111,9 +111,6 @@ module.exports = {
 				delete babelresult.map.sourcesContent;
 				babelresult.map.file = outFile;
 				babelresult.map = JSON.stringify(babelresult.map);
-
-				//console.log(babelresult.map);
-
 
 				concat.add(path.basename(file), babelresult.code, babelresult.map);
 			});
