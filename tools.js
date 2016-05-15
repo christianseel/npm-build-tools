@@ -18,8 +18,6 @@ module.exports = {
 			file: file,
 			outFile: path.resolve(outFile),
 
-			includePaths: [ 'assets/tpl/sources/scss/', 'assets/tpl/sources/', 'assets/tpl/sources/bower_components/' ],
-
 			sourceMap: true,
 			//sourceComments: true,
 			//sourceMapContents: true,
