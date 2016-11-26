@@ -1,13 +1,13 @@
 {
   "name": "npm-build-tools",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "A small set of build tools for npm",
   "repository" : {
     "type" : "git",
     "url" : "http://github.com/christianseel/npm-build-tools.git"
   },
   "main": "index.js",
-  "author": "Christian Seel <cs@chsmedien.de> (http://chsmedien.de/)",
+  "author": "Christian Seel <cs@seda.digital>",
   "dependencies": {
     "autoprefixer": "4.0.x",
     "node-sass": "3.x.x",
@@ -15,6 +15,10 @@
     "optimist": "0.x.x",
     "cli-color": "0.x.x",
     "babel-core": "6.x.x",
-    "concat-with-sourcemaps": "1.x.x"
+    "concat-with-sourcemaps": "1.x.x",
+    "parallelshell": "2.0.x",
+    "watch": "1.0.x",
+    "jshint": "2.9.x",
+    "svg-sprite": "1.3.x"
   }
 }
